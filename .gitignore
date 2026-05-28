@@ -28,3 +28,6 @@ screenshots/
 
 # Logs
 *.log
+
+# Personal email config credentials
+config.json

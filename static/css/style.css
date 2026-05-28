@@ -2458,15 +2458,7 @@ body {
     height: calc(100% - 130px);
 }
 
-.drawer-content-wrapper .tab-panel {
-    display: none;
-    height: 100%;
-}
 
-.drawer-content-wrapper .tab-panel.active {
-    display: flex;
-    flex-direction: column;
-}
 
 /* Adjust file explorer, mail, processes to scroll inside drawer */
 .file-explorer-layout, .mail-hub-layout {

@@ -470,59 +470,185 @@ def classify_email(sender, subject, body):
     return "inbox"
 
 def get_emails():
-    """Gathers emails from local Microsoft Outlook if active, otherwise returns Mock Inbox."""
-    if not has_outlook:
-        return MOCK_EMAILS
-        
-    email_list = []
-    try:
-        # Initialize COM libraries for this request thread
-        comtypes.CoInitialize()
-        outlook = win32com.client.Dispatch("Outlook.Application")
-        namespace = outlook.GetNamespace("MAPI")
-        
-        # 6 represents standard Inbox folder
-        inbox = namespace.GetDefaultFolder(6)
-        messages = inbox.Items
-        messages.Sort("[ReceivedTime]", True) # Newest first
-        
-        # Pull top 40 emails
-        count = min(len(messages), 40)
-        for i in range(1, count + 1):
-            try:
-                msg = messages.Item(i)
-                subject = getattr(msg, "Subject", "No Subject")
-                sender = getattr(msg, "SenderName", "Unknown Sender")
-                body_snippet = getattr(msg, "Body", "")[:350].strip().replace('\r\n', ' ')
-                
-                try:
-                    received_time = msg.ReceivedTime.strftime("%b %d, %I:%M %p")
-                except:
-                    received_time = "Unknown"
-                    
-                category = classify_email(sender, subject, body_snippet)
-                
-                email_list.append({
-                    "id": i,
-                    "sender": sender,
-                    "subject": subject,
-                    "time": received_time,
-                    "body": getattr(msg, "Body", "No body text available."),
-                    "category": category
-                })
-            except Exception as e:
-                print(f"Skipping single email: {e}")
-                continue
-                
-    except Exception as e:
-        print(f"Outlook aggregation error: {e}. Falling back to Mock Engine.")
-        return MOCK_EMAILS
-    finally:
-        try: comtypes.CoUninitialize()
-        except: pass
-        
-    return email_list if email_list else MOCK_EMAILS
+    """Gathers emails from IMAP config if active, local Outlook if active, otherwise returns custom instructions inbox."""
+    import imaplib
+    import email
+    from email.header import decode_header
+    import json
+    
+    config_path = "config.json"
+    
+    # Auto-create template config.json if it doesn't exist!
+    if not os.path.exists(config_path):
+        try:
+            default_config = {
+                "email": "your_email@gmail.com",
+                "app_password": "your_app_password_here (16 characters, no spaces)",
+                "imap_server": "imap.gmail.com"
+            }
+            with open(config_path, 'w', encoding='utf-8') as f:
+                json.dump(default_config, f, indent=4)
+        except Exception as e:
+            print(f"Failed to create config.json: {e}")
 
+    # Try to load credentials
+    credentials = None
+    if os.path.exists(config_path):
+        try:
+            with open(config_path, 'r', encoding='utf-8') as f:
+                credentials = json.load(f)
+        except Exception as e:
+            print(f"Error loading config.json: {e}")
+            
+    # Check if credentials are set and not placeholder
+    is_configured = False
+    if credentials:
+        email_addr = credentials.get("email", "")
+        app_pass = credentials.get("app_password", "")
+        imap_server = credentials.get("imap_server", "imap.gmail.com")
+        if email_addr and "@" in email_addr and "your_email" not in email_addr and "your_app_password" not in app_pass:
+            is_configured = True
+            
+    if is_configured:
+        email_list = []
+        try:
+            # Connect to IMAP server
+            mail = imaplib.IMAP4_SSL(imap_server)
+            mail.login(email_addr, app_pass)
+            mail.select("inbox")
+            
+            # Fetch latest 20 emails
+            status, messages = mail.search(None, "ALL")
+            mail_ids = messages[0].split()
+            
+            if mail_ids:
+                latest_ids = mail_ids[-20:][::-1] # Get top 20, newest first
+                for i, mail_id in enumerate(latest_ids, start=1):
+                    try:
+                        status, msg_data = mail.fetch(mail_id, "(RFC822)")
+                        for response_part in msg_data:
+                            if isinstance(response_part, tuple):
+                                msg = email.message_from_bytes(response_part[1])
+                                
+                                # Decode Subject
+                                subject = "No Subject"
+                                if msg["Subject"]:
+                                    decoded = decode_header(msg["Subject"])[0]
+                                    subject = decoded[0]
+                                    if isinstance(subject, bytes):
+                                        subject = subject.decode(decoded[1] or "utf-8", errors="ignore")
+                                
+                                # Decode Sender
+                                sender = "Unknown Sender"
+                                if msg["From"]:
+                                    decoded = decode_header(msg["From"])[0]
+                                    sender = decoded[0]
+                                    if isinstance(sender, bytes):
+                                        sender = sender.decode(decoded[1] or "utf-8", errors="ignore")
+                                
+                                # Extract Time
+                                received_time = msg["Date"] or "Unknown Date"
+                                try:
+                                    parsed_time = email.utils.parsedate_to_datetime(received_time)
+                                    received_time = parsed_time.strftime("%b %d, %I:%M %p")
+                                except: pass
+                                
+                                # Extract Body
+                                body = ""
+                                if msg.is_multipart():
+                                    for part in msg.walk():
+                                        if part.get_content_type() == "text/plain":
+                                            body = part.get_payload(decode=True).decode("utf-8", errors="ignore")
+                                            break
+                                else:
+                                    body = msg.get_payload(decode=True).decode("utf-8", errors="ignore")
+                                
+                                body_snippet = body[:350].strip().replace('\r\n', ' ').replace('\n', ' ')
+                                category = classify_email(sender, subject, body_snippet)
+                                
+                                email_list.append({
+                                    "id": i,
+                                    "sender": sender,
+                                    "subject": subject,
+                                    "time": received_time,
+                                    "body": body if body else "No text payload available, sir.",
+                                    "category": category
+                                })
+                    except Exception as e:
+                        print(f"Failed parsing email item: {e}")
+                        continue
+            mail.close()
+            mail.logout()
+            
+            if email_list:
+                return email_list
+        except Exception as e:
+            print(f"IMAP retrieval error: {e}. Falling back to default.")
+
+    # Try Outlook COM as fallback if credentials not configured or IMAP failed
+    if has_outlook:
+        email_list = []
+        try:
+            comtypes.CoInitialize()
+            outlook = win32com.client.Dispatch("Outlook.Application")
+            namespace = outlook.GetNamespace("MAPI")
+            inbox = namespace.GetDefaultFolder(6)
+            messages = inbox.Items
+            messages.Sort("[ReceivedTime]", True)
+            
+            count = min(len(messages), 40)
+            for i in range(1, count + 1):
+                try:
+                    msg = messages.Item(i)
+                    subject = getattr(msg, "Subject", "No Subject")
+                    sender = getattr(msg, "SenderName", "Unknown Sender")
+                    body_snippet = getattr(msg, "Body", "")[:350].strip().replace('\r\n', ' ')
+                    
+                    try: received_time = msg.ReceivedTime.strftime("%b %d, %I:%M %p")
+                    except: received_time = "Unknown"
+                        
+                    category = classify_email(sender, subject, body_snippet)
+                    email_list.append({
+                        "id": i,
+                        "sender": sender,
+                        "subject": subject,
+                        "time": received_time,
+                        "body": getattr(msg, "Body", "No body text available."),
+                        "category": category
+                    })
+                except Exception as e:
+                    print(f"Skipping single email: {e}")
+                    continue
+        except Exception as e:
+            print(f"Outlook aggregation error: {e}")
+        finally:
+            try: comtypes.CoUninitialize()
+            except: pass
+            
+        if email_list:
+            return email_list
+
+    # Default fallback: Clean instructional email explaining how to connect
+    current_time_str = time.strftime("%b %d, %I:%M %p")
+    return [
+        {
+            "id": 1,
+            "sender": "J.A.R.V.I.S. Intelligence",
+            "subject": "ACTION REQUIRED: Configure Real Mail Server Integration, Sir",
+            "time": current_time_str,
+            "body": (
+                "Greetings, sir. Currently, your real email inbox is not linked to my processor. "
+                "To display your actual personal emails instead of mock data, please follow these steps:\n\n"
+                "1. Open the 'config.json' file that I have created in your project workspace folder.\n"
+                "2. Enter your real Email Address (e.g. your_email@gmail.com).\n"
+                "3. Enter your 16-character App Password (for GMail/Yahoo, generate an App Password in your account security settings; your standard password will be blocked).\n"
+                "4. Change the imap_server if you use Outlook Web (imap-mail.outlook.com) or Yahoo (imap.mail.yahoo.com).\n"
+                "5. Save the file and click the 'REFRESH' button on your mail folder sidebar.\n\n"
+                "I will immediately initialize the secure IMAP channels and fetch your inbox, sir!"
+            ),
+            "category": "alerts"
+        }
+     ]
 
 # ==========================================================================
 # 5. SAFETY SYSTEM TERMINAL HANDLER
