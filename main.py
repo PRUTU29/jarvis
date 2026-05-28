@@ -724,6 +724,43 @@ def parse_and_execute_command(command_text):
         "details": ""
     }
     
+    # 0. Navigation / Panel switching commands
+    if any(kw in cmd for kw in ["open mail", "open email", "show mail", "show email", "check mail", "check email", "show inbox"]):
+        response["message"] = "Opening your Email Hub and fetching your inbox, sir."
+        response["action"] = "tab"
+        response["details"] = "mail"
+        return response
+        
+    elif any(kw in cmd for kw in ["open files", "open explorer", "open file explorer", "show files", "show folder", "browse files"]):
+        response["message"] = "Opening the File Explorer, sir."
+        response["action"] = "tab"
+        response["details"] = "files"
+        return response
+        
+    elif any(kw in cmd for kw in ["open apps", "open app deck", "show apps", "show scanned apps"]):
+        response["message"] = "Opening the Executive App Deck, sir."
+        response["action"] = "tab"
+        response["details"] = "apps"
+        return response
+        
+    elif any(kw in cmd for kw in ["open shell", "open terminal", "show terminal", "open cmd console"]):
+        response["message"] = "Initializing the sandboxed shell terminal, sir."
+        response["action"] = "tab"
+        response["details"] = "terminal"
+        return response
+        
+    elif any(kw in cmd for kw in ["open tasks", "open task manager", "show tasks", "open processes", "show processes"]):
+        response["message"] = "Opening the System Task Manager, sir."
+        response["action"] = "tab"
+        response["details"] = "processes"
+        return response
+        
+    elif any(kw in cmd for kw in ["open telemetry", "core system", "show telemetry", "show gauges"]):
+        response["message"] = "Displaying core system telemetry diagnostics, sir."
+        response["action"] = "tab"
+        response["details"] = "telemetry"
+        return response
+
     # 1. Volume Controls
     if "volume to" in cmd or "set volume" in cmd:
         try:

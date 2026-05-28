@@ -955,7 +955,9 @@ document.addEventListener('DOMContentLoaded', () => {
             appendTerminalLog('JARVIS', data.message, 'jarvis');
             speakResponse(data.message);
 
-            if (data.action === "screenshot" && data.status === "success") {
+            if (data.action === "tab" && data.status === "success") {
+                switchToTab(data.details);
+            } else if (data.action === "screenshot" && data.status === "success") {
                 openScreenshotPreview(data.details);
             } else if (data.action === "volume" && data.status === "success") {
                 fetchSystemTelemetry();
