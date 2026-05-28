@@ -887,6 +887,15 @@ def parse_and_execute_command(command_text):
                 response["message"] = "Launching Spotify web player, sir."
                 response["action"] = "launch"
                 launched = True
+            elif "whatsapp" in app_name:
+                try:
+                    os.startfile("whatsapp://")
+                    response["message"] = "Opening WhatsApp Desktop, sir."
+                except Exception:
+                    webbrowser.open("https://web.whatsapp.com")
+                    response["message"] = "Launching WhatsApp Web, sir."
+                response["action"] = "launch"
+                launched = True
             else:
                 # Direct OS shell launch fallback
                 try:
