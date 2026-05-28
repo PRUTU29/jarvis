@@ -49,6 +49,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Tabbed Navigation
     const tabButtons = document.querySelectorAll('.tab-btn');
     const tabPanels = document.querySelectorAll('.tab-panel');
+    const utilityDrawer = document.getElementById('utility-drawer');
+    const drawerTrigger = document.getElementById('sidebar-drawer-trigger');
+    const drawerCloseBtn = document.getElementById('close-drawer-btn');
 
     // PANEL 2: Scanned Apps Deck Elements
     const scannedAppsGrid = document.getElementById('scanned-apps-grid');
@@ -236,6 +239,17 @@ document.addEventListener('DOMContentLoaded', () => {
     tabButtons.forEach(btn => {
         btn.addEventListener('click', () => {
             const targetTab = btn.getAttribute('data-target');
+            
+            // If they trigger the core telemetry view, close the drawer and return early
+            if (targetTab === 'telemetry') {
+                closeDrawer();
+                return;
+            }
+
+            // Otherwise, slide open the drawer if it's currently hidden
+            if (utilityDrawer && !utilityDrawer.classList.contains('open')) {
+                openDrawer();
+            }
             
             // Cycle active button
             tabButtons.forEach(b => b.classList.remove('active'));
@@ -1417,6 +1431,62 @@ document.addEventListener('DOMContentLoaded', () => {
                 closePalette();
                 paletteResults._items[paletteActiveIdx].action();
             }
+        }
+    });
+
+    // ===================================================================
+    //  SLIDE-OUT UTILITY DRAWER CONTROLLER
+    // ===================================================================
+    function openDrawer() {
+        if (utilityDrawer && !utilityDrawer.classList.contains('open')) {
+            utilityDrawer.classList.add('open');
+            playBeep('wake');
+            // If the active tab inside the drawer is apps, files, or processes, make sure it triggers loading
+            const activeTabBtn = utilityDrawer.querySelector('.drawer-tabs .tab-btn.active');
+            if (activeTabBtn) {
+                activeTabBtn.click();
+            } else {
+                // Default to first tab (Apps) if none is active
+                const firstTabBtn = utilityDrawer.querySelector('.drawer-tabs .tab-btn');
+                if (firstTabBtn) firstTabBtn.click();
+            }
+        }
+    }
+
+    function closeDrawer() {
+        if (utilityDrawer && utilityDrawer.classList.contains('open')) {
+            utilityDrawer.classList.remove('open');
+            playBeep('sleep');
+        }
+    }
+
+    if (drawerTrigger) {
+        drawerTrigger.addEventListener('click', () => {
+            if (utilityDrawer.classList.contains('open')) {
+                closeDrawer();
+            } else {
+                openDrawer();
+            }
+        });
+    }
+
+    if (drawerCloseBtn) {
+        drawerCloseBtn.addEventListener('click', closeDrawer);
+    }
+
+    // Close on click outside the drawer
+    document.addEventListener('click', (e) => {
+        if (utilityDrawer && utilityDrawer.classList.contains('open')) {
+            if (!utilityDrawer.contains(e.target) && !drawerTrigger.contains(e.target)) {
+                closeDrawer();
+            }
+        }
+    });
+
+    // Close on Escape key press
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeDrawer();
         }
     });
 

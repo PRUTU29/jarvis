@@ -3,29 +3,29 @@
    ========================================================================== */
 
 :root {
-    --bg-dark: #050a14;
-    --bg-glass: rgba(10, 20, 38, 0.55);
-    --bg-panel: rgba(16, 30, 58, 0.45);
-    --border-neon: rgba(0, 242, 254, 0.18);
-    --border-neon-hover: rgba(0, 242, 254, 0.4);
+    --bg-dark: #08080a;
+    --bg-glass: rgba(18, 18, 22, 0.65);
+    --bg-panel: rgba(22, 22, 28, 0.55);
+    --border-neon: rgba(212, 175, 55, 0.15);
+    --border-neon-hover: rgba(212, 175, 55, 0.35);
     
-    /* Neon Palettes */
-    --neon-cyan: #00f2fe;
-    --neon-blue: #4facfe;
-    --neon-purple: #b185ff;
-    --neon-orange: #ff7b00;
-    --neon-red: #ff3366;
-    --text-primary: #e2f0fd;
-    --text-muted: #8ba3c7;
+    /* Elegant Amber/Gold Stark Palettes */
+    --neon-cyan: #d4af37;        /* Stark Gold */
+    --neon-blue: #ffaa00;        /* Bright Gold/Amber */
+    --neon-purple: #c0c0c0;      /* Silver/Chrome */
+    --neon-orange: #e59500;      /* Amber */
+    --neon-red: #ff3e3e;         /* Crimson Stark alert */
+    --text-primary: #f0eae1;     /* Warm ivory */
+    --text-muted: #8b8882;       /* Slate gold */
     
     /* Fonts */
-    --font-heading: 'Orbitron', sans-serif;
+    --font-heading: 'Outfit', 'Orbitron', sans-serif;
     --font-body: 'Inter', sans-serif;
     --font-mono: 'Fira Code', 'Courier New', monospace;
     
-    --glow-cyan: 0 0 15px rgba(0, 242, 254, 0.35);
-    --glow-purple: 0 0 15px rgba(177, 133, 255, 0.35);
-    --glow-red: 0 0 15px rgba(255, 51, 102, 0.5);
+    --glow-cyan: 0 0 15px rgba(212, 175, 55, 0.25);
+    --glow-purple: 0 0 15px rgba(192, 192, 192, 0.25);
+    --glow-red: 0 0 15px rgba(255, 62, 62, 0.45);
 }
 
 /* --- Base Elements & Cleanups --- */
@@ -430,12 +430,12 @@ h1, h2, h3, h4 {
     width: 100px;
     height: 100px;
     border-radius: 50%;
-    background: radial-gradient(circle, #ffffff 0%, rgba(0, 242, 254, 0.8) 35%, rgba(10, 28, 62, 0.95) 85%);
+    background: radial-gradient(circle, #ffffff 0%, var(--border-neon-hover) 35%, rgba(15, 15, 20, 0.95) 85%);
     display: flex;
     align-items: center;
     justify-content: center;
     box-shadow: 
-        0 0 25px #00f2fe,
+        0 0 25px var(--neon-cyan),
         inset 0 0 15px rgba(255, 255, 255, 0.8);
     z-index: 10;
     transition: all 0.5s ease;
@@ -445,7 +445,7 @@ h1, h2, h3, h4 {
 .mic-core-icon {
     font-size: 2.2rem;
     color: #ffffff;
-    text-shadow: 0 0 10px rgba(0, 242, 254, 0.8);
+    text-shadow: 0 0 10px var(--neon-cyan);
     z-index: 11;
     transition: transform 0.2s ease;
 }
@@ -2220,8 +2220,8 @@ h1, h2, h3, h4 {
 }
 
 .palette-item:hover, .palette-item.active {
-    background: rgba(0, 242, 254, 0.08);
-    border-color: rgba(0, 242, 254, 0.2);
+    background: rgba(212, 175, 55, 0.08);
+    border-color: rgba(212, 175, 55, 0.2);
 }
 
 .palette-item i {
@@ -2254,5 +2254,248 @@ h1, h2, h3, h4 {
     background: rgba(16, 32, 60, 0.6);
     padding: 2px 8px;
     border-radius: 4px;
-    border: 1px solid rgba(0, 242, 254, 0.1);
+    border: 1px solid rgba(212, 175, 55, 0.1);
+}
+
+/* ==========================================================================
+   Full-Screen Immersive Layout & Floating Slide-Out Drawer Styles
+   ========================================================================== */
+
+/* Full screen override */
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+    font-family: var(--font-body);
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+}
+
+.jarvis-container {
+    width: 100vw;
+    height: 100vh;
+    max-width: 100%;
+    margin: 0;
+    padding: 15px 25px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Adjust grid so it takes exact remaining height */
+.tabs-content-wrapper {
+    flex-grow: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.tab-panel {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.jarvis-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 1.3fr 1.1fr;
+    gap: 20px;
+    height: 100%;
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+/* Make inner cards responsive inside height constraint */
+.panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.panel-content {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 15px;
+}
+
+/* Premium Side Drawer */
+.floating-drawer-btn {
+    position: fixed;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 99;
+    background: var(--bg-dark);
+    border: 1px solid var(--neon-cyan);
+    border-right: none;
+    border-radius: 8px 0 0 8px;
+    padding: 18px 8px;
+    color: var(--neon-cyan);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-heading);
+    font-weight: 800;
+    font-size: 0.65rem;
+    letter-spacing: 2px;
+    box-shadow: -3px 0 15px rgba(212, 175, 55, 0.2);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.floating-drawer-btn i {
+    font-size: 1.1rem;
+}
+
+.floating-drawer-btn span {
+    writing-mode: vertical-rl;
+    text-transform: uppercase;
+}
+
+.floating-drawer-btn:hover {
+    padding-right: 12px;
+    color: var(--neon-blue);
+    border-color: var(--neon-blue);
+    box-shadow: -5px 0 20px rgba(255, 170, 0, 0.3);
+}
+
+.utility-drawer {
+    position: fixed;
+    top: 0;
+    right: -600px;
+    width: 600px;
+    height: 100vh;
+    z-index: 100;
+    background: rgba(10, 10, 12, 0.92) !important;
+    backdrop-filter: blur(25px);
+    border-left: 1px solid var(--border-neon) !important;
+    box-shadow: -10px 0 40px rgba(0, 0, 0, 0.8) !important;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    padding: 20px;
+    border-radius: 0 !important;
+}
+
+.utility-drawer.open {
+    transform: translateX(-600px);
+}
+
+.drawer-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--border-neon);
+    padding-bottom: 12px;
+}
+
+.drawer-header h3 {
+    font-size: 1.1rem;
+    color: var(--neon-cyan);
+    text-shadow: 0 0 10px rgba(212, 175, 55, 0.2);
+    font-family: var(--font-heading);
+}
+
+.close-drawer-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.6rem;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.close-drawer-btn:hover {
+    color: var(--neon-red);
+}
+
+.drawer-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 20px;
+    background: rgba(255, 255, 255, 0.02);
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid var(--border-neon);
+}
+
+.drawer-tabs .tab-btn {
+    flex-grow: 1;
+    padding: 8px 12px;
+    font-size: 0.72rem;
+    font-family: var(--font-heading);
+    background: none;
+    border: 1px solid transparent;
+    color: var(--text-muted);
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.drawer-tabs .tab-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.drawer-tabs .tab-btn.active {
+    color: var(--bg-dark) !important;
+    background: var(--neon-cyan) !important;
+    font-weight: 800;
+    box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+}
+
+.drawer-content-wrapper {
+    flex-grow: 1;
+    overflow-y: auto;
+    position: relative;
+    height: calc(100% - 130px);
+}
+
+.drawer-content-wrapper .tab-panel {
+    display: none;
+    height: 100%;
+}
+
+.drawer-content-wrapper .tab-panel.active {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Adjust file explorer, mail, processes to scroll inside drawer */
+.file-explorer-layout, .mail-hub-layout {
+    height: 100%;
+    overflow: hidden;
+}
+
+.file-main-explorer, .mail-preview-panel {
+    height: 100%;
+    overflow: hidden;
+}
+
+.files-table-wrapper {
+    max-height: calc(100vh - 200px) !important;
+}
+
+/* Mobile Responsiveness for Drawer */
+@media (max-width: 600px) {
+    .utility-drawer {
+        width: 100vw;
+        right: -100vw;
+    }
+    .utility-drawer.open {
+        transform: translateX(-100vw);
+    }
+}
+
+.core-telemetry-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }

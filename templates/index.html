@@ -24,27 +24,10 @@
                 <span class="sub-logo">ULTIMATE CONSOLE</span>
             </div>
             
-            <!-- Futuristic Tabs Navigation -->
-            <nav class="console-tabs">
-                <button class="tab-btn active" data-target="telemetry">
-                    <i class="fa-solid fa-gauge-high"></i> CORE SYSTEM
-                </button>
-                <button class="tab-btn" data-target="apps" id="tab-trigger-apps">
-                    <i class="fa-solid fa-cubes"></i> APP DECK
-                </button>
-                <button class="tab-btn" data-target="files" id="tab-trigger-files">
-                    <i class="fa-solid fa-folder-open"></i> FILE EXPLORER
-                </button>
-                <button class="tab-btn" data-target="mail" id="tab-trigger-mail">
-                    <i class="fa-solid fa-envelope"></i> EMAIL HUB
-                </button>
-                <button class="tab-btn" data-target="terminal">
-                    <i class="fa-solid fa-terminal"></i> SHELL
-                </button>
-                <button class="tab-btn" data-target="processes">
-                    <i class="fa-solid fa-microchip"></i> TASKS
-                </button>
-            </nav>
+            <div class="system-status-tag" style="display: flex; align-items: center; gap: 8px; font-family: var(--font-heading); font-size: 0.8rem; color: var(--neon-cyan); letter-spacing: 1px;">
+                <span class="tagline-dot pulse-glow" style="width: 8px; height: 8px; background: var(--neon-cyan); border-radius: 50%; display: inline-block;"></span>
+                <span>SECURE STARK-TECH SYSTEM NOMINAL</span>
+            </div>
 
             <div class="header-info">
                 <div class="info-item">
@@ -62,7 +45,7 @@
         <div class="tabs-content-wrapper">
             
             <!-- PANEL 1: Telemetry & Core Controls (Original Layout) -->
-            <section class="tab-panel active" id="panel-telemetry">
+            <section class="core-telemetry-panel active" id="panel-telemetry">
                 <div class="jarvis-grid">
                     <!-- Left: Hardware Dials -->
                     <div class="panel glass-panel left-panel">
@@ -199,6 +182,124 @@
                 </div>
             </section>
 
+            
+            
+        </div>
+
+        <!-- Bottom Panel: General Intelligence Chat Console & Logs (Shared) -->
+        <footer class="jarvis-footer glass-panel">
+            <div class="panel-header">
+                <i class="fa-solid fa-terminal panel-icon"></i>
+                <h2>COMMAND INTELLIGENCE LOG</h2>
+                <button class="clear-log-btn" id="clear-log-btn"><i class="fa-solid fa-trash-can"></i> CLEAR LOG</button>
+            </div>
+            <div class="terminal-container">
+                <div class="terminal-body" id="terminal-body">
+                    <div class="terminal-line system-line">[SYSTEM] INITIALIZING J.A.R.V.I.S. PROTOCOLS...</div>
+                    <div class="terminal-line system-line">[SYSTEM] CORE KERNEL STACK SECURED.</div>
+                </div>
+                <div class="terminal-input-bar">
+                    <span class="prompt-symbol">&gt;&gt;</span>
+                    <input type="text" id="manual-cmd-input" placeholder="Transmit direct text command to J.A.R.V.I.S. (e.g. 'open notepad', 'volume to 40', 'screenshot')..." autocomplete="off">
+                    <button class="send-cmd-btn" id="send-cmd-btn"><i class="fa-solid fa-circle-arrow-up"></i> SEND</button>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Screenshot Preview Modal -->
+    <div class="modal-overlay hidden" id="screenshot-modal">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h3>SCREENSHOT CAPTURE PREVIEW</h3>
+                <button class="close-modal-btn" id="close-modal-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <img id="screenshot-preview-img" src="" alt="Latest Screenshot Capture">
+            </div>
+            <div class="modal-footer">
+                <a id="screenshot-download-link" href="" download="jarvis_screenshot.png" class="action-btn-neon">
+                    <div class="btn-glow-border"></div>
+                    <i class="fa-solid fa-download"></i> DOWNLOAD CAPTURE
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Email Reader Full Modal -->
+    <div class="modal-overlay hidden" id="email-reader-modal">
+        <div class="modal-content glass-panel email-reader-content">
+            <div class="modal-header">
+                <h3 id="email-view-subject">Subject Header</h3>
+                <button class="close-modal-btn" id="close-email-btn">&times;</button>
+            </div>
+            <div class="modal-body email-reader-body">
+                <div class="email-metadata-block">
+                    <div>FROM: <strong id="email-view-sender">Sender Name</strong></div>
+                    <div>RECEIVED: <span id="email-view-time">Received Date</span></div>
+                    <div class="email-view-badge" id="email-view-category">Work</div>
+                </div>
+                <div class="email-text-content" id="email-view-body">
+                    Email content paragraph body.
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="action-btn-neon" id="close-email-btn-footer">
+                    <div class="btn-glow-border"></div>
+                    <i class="fa-solid fa-circle-check"></i> ACKNOWLEDGE MESSAGE
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Command Palette Overlay (Ctrl+K) -->
+    <div class="modal-overlay hidden" id="command-palette-modal">
+        <div class="command-palette glass-panel">
+            <div class="palette-search-bar">
+                <i class="fa-solid fa-bolt"></i>
+                <input type="text" id="palette-search-input" placeholder="Type a command, app name, or action..." autocomplete="off">
+                <kbd>ESC</kbd>
+            </div>
+            <div class="palette-results" id="palette-results">
+                <div class="palette-hint">Start typing to search commands, apps, and actions...</div>
+            </div>
+        </div>
+    </div>
+
+    
+    <!-- Floating Side Trigger Button -->
+    <button id="sidebar-drawer-trigger" class="floating-drawer-btn" title="Open Advanced Utilities">
+        <i class="fa-solid fa-gears"></i>
+        <span>UTILITIES</span>
+    </button>
+
+    <!-- Frosted Glass Slide-Out Utility Drawer -->
+    <div id="utility-drawer" class="utility-drawer glass-panel">
+        <div class="drawer-header">
+            <h3><i class="fa-solid fa-screwdriver-wrench"></i> ADVANCED UTILITIES</h3>
+            <button class="close-drawer-btn" id="close-drawer-btn">&times;</button>
+        </div>
+        <nav class="drawer-tabs">
+            <button class="tab-btn" data-target="apps" id="tab-trigger-apps">
+                <i class="fa-solid fa-cubes"></i> APPS
+            </button>
+            <button class="tab-btn" data-target="files" id="tab-trigger-files">
+                <i class="fa-solid fa-folder-open"></i> FILES
+            </button>
+            <button class="tab-btn" data-target="mail" id="tab-trigger-mail">
+                <i class="fa-solid fa-envelope"></i> EMAIL
+            </button>
+            <button class="tab-btn" data-target="terminal">
+                <i class="fa-solid fa-terminal"></i> SHELL
+            </button>
+            <button class="tab-btn" data-target="processes">
+                <i class="fa-solid fa-microchip"></i> TASKS
+            </button>
+        </nav>
+        <div class="drawer-content-wrapper">
             <!-- PANEL 2: Scanned Installed Applications Deck -->
             <section class="tab-panel hidden" id="panel-apps">
                 <div class="panel glass-panel full-width-panel">
@@ -398,92 +499,8 @@
                     </div>
                 </div>
             </section>
-            
-        </div>
-
-        <!-- Bottom Panel: General Intelligence Chat Console & Logs (Shared) -->
-        <footer class="jarvis-footer glass-panel">
-            <div class="panel-header">
-                <i class="fa-solid fa-terminal panel-icon"></i>
-                <h2>COMMAND INTELLIGENCE LOG</h2>
-                <button class="clear-log-btn" id="clear-log-btn"><i class="fa-solid fa-trash-can"></i> CLEAR LOG</button>
-            </div>
-            <div class="terminal-container">
-                <div class="terminal-body" id="terminal-body">
-                    <div class="terminal-line system-line">[SYSTEM] INITIALIZING J.A.R.V.I.S. PROTOCOLS...</div>
-                    <div class="terminal-line system-line">[SYSTEM] CORE KERNEL STACK SECURED.</div>
-                </div>
-                <div class="terminal-input-bar">
-                    <span class="prompt-symbol">&gt;&gt;</span>
-                    <input type="text" id="manual-cmd-input" placeholder="Transmit direct text command to J.A.R.V.I.S. (e.g. 'open notepad', 'volume to 40', 'screenshot')..." autocomplete="off">
-                    <button class="send-cmd-btn" id="send-cmd-btn"><i class="fa-solid fa-circle-arrow-up"></i> SEND</button>
-                </div>
-            </div>
-        </footer>
-    </div>
-
-    <!-- Screenshot Preview Modal -->
-    <div class="modal-overlay hidden" id="screenshot-modal">
-        <div class="modal-content glass-panel">
-            <div class="modal-header">
-                <h3>SCREENSHOT CAPTURE PREVIEW</h3>
-                <button class="close-modal-btn" id="close-modal-btn">&times;</button>
-            </div>
-            <div class="modal-body">
-                <img id="screenshot-preview-img" src="" alt="Latest Screenshot Capture">
-            </div>
-            <div class="modal-footer">
-                <a id="screenshot-download-link" href="" download="jarvis_screenshot.png" class="action-btn-neon">
-                    <div class="btn-glow-border"></div>
-                    <i class="fa-solid fa-download"></i> DOWNLOAD CAPTURE
-                </a>
-            </div>
         </div>
     </div>
-
-    <!-- Email Reader Full Modal -->
-    <div class="modal-overlay hidden" id="email-reader-modal">
-        <div class="modal-content glass-panel email-reader-content">
-            <div class="modal-header">
-                <h3 id="email-view-subject">Subject Header</h3>
-                <button class="close-modal-btn" id="close-email-btn">&times;</button>
-            </div>
-            <div class="modal-body email-reader-body">
-                <div class="email-metadata-block">
-                    <div>FROM: <strong id="email-view-sender">Sender Name</strong></div>
-                    <div>RECEIVED: <span id="email-view-time">Received Date</span></div>
-                    <div class="email-view-badge" id="email-view-category">Work</div>
-                </div>
-                <div class="email-text-content" id="email-view-body">
-                    Email content paragraph body.
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="action-btn-neon" id="close-email-btn-footer">
-                    <div class="btn-glow-border"></div>
-                    <i class="fa-solid fa-circle-check"></i> ACKNOWLEDGE MESSAGE
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Toast Notification Container -->
-    <div class="toast-container" id="toast-container"></div>
-
-    <!-- Command Palette Overlay (Ctrl+K) -->
-    <div class="modal-overlay hidden" id="command-palette-modal">
-        <div class="command-palette glass-panel">
-            <div class="palette-search-bar">
-                <i class="fa-solid fa-bolt"></i>
-                <input type="text" id="palette-search-input" placeholder="Type a command, app name, or action..." autocomplete="off">
-                <kbd>ESC</kbd>
-            </div>
-            <div class="palette-results" id="palette-results">
-                <div class="palette-hint">Start typing to search commands, apps, and actions...</div>
-            </div>
-        </div>
-    </div>
-
-    <script src="/static/js/app.js"></script>
+<script src="/static/js/app.js"></script>
 </body>
 </html>
