@@ -742,6 +742,7 @@ document.addEventListener('DOMContentLoaded', () => {
             centerPanel.classList.remove('listening');
             centerPanel.classList.add('speaking');
             reactorHint.textContent = "J.A.R.V.I.S. RESPONDING...";
+            clearTimeout(standbyTimer); // Prevent standby during speech
         };
 
         utterance.onend = () => {
@@ -753,6 +754,9 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 reactorHint.textContent = "TAP REACTOR CORE TO TRANSMIT SPEECH";
             }
+            if (isWokenUp) {
+                startStandbyDialogueTimer(); // Start 7s standby timer ONLY AFTER speech ends
+            }
         };
 
         utterance.onerror = (e) => {
@@ -760,6 +764,9 @@ document.addEventListener('DOMContentLoaded', () => {
             centerPanel.classList.remove('speaking');
             if (isWakeWordMode) resumeContinuousListening();
             else reactorHint.textContent = "TAP REACTOR CORE TO TRANSMIT SPEECH";
+            if (isWokenUp) {
+                startStandbyDialogueTimer(); // Start 7s standby timer ONLY AFTER speech ends
+            }
         };
 
         window.speechSynthesis.speak(utterance);
@@ -917,6 +924,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function transmitCommand(commandString) {
         if (!commandString.trim()) return;
         appendTerminalLog('USER', `"${commandString}"`, 'user');
+        clearTimeout(standbyTimer); // Stop standby timer during command execution
         
         try {
             const response = await fetch('/api/command', {
@@ -1012,6 +1020,26 @@ document.addEventListener('DOMContentLoaded', () => {
         if (query) {
             transmitCommand(`search google for ${query}`);
             dashboardSearchInput.value = '';
+        }
+    });
+
+    // Manual Command Input Dispatcher
+    function submitManualCommand() {
+        const cmdVal = manualCmdInput.value.trim();
+        if (cmdVal) {
+            resetStandbyDialogueTimer();
+            transmitCommand(cmdVal);
+            manualCmdInput.value = '';
+        }
+    }
+
+    sendCmdBtn.addEventListener('click', () => {
+        submitManualCommand();
+    });
+
+    manualCmdInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            submitManualCommand();
         }
     });
 

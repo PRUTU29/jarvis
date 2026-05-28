@@ -753,6 +753,10 @@ def parse_and_execute_command(command_text):
         response["message"] = "At your service, sir. All systems are fully operational and ready for your command."
         response["action"] = "greet"
         
+    elif any(kw in cmd for kw in ["what can you do", "what functions", "what all functions", "help", "capabilities", "features"]):
+        response["message"] = "I can adjust master volume (e.g. 'volume to 50', 'mute'), capture screenshots ('take a screenshot'), lock your PC ('lock screen'), launch apps ('open Notepad'), perform Google searches ('search google for python'), check hardware diagnostics ('system status'), manage tasks ('list processes'), and browse local files. Use the Command Palette (Ctrl+K) to explore everything, sir!"
+        response["action"] = "chat"
+
     elif "status" in cmd or "system status" in cmd or "diagnostics" in cmd or "hardware" in cmd:
         stats = get_system_stats()
         response["message"] = f"System diagnostics: CPU is at {stats['cpu']}%, RAM usage is {stats['ram']}%, Disk space utilized is {stats['disk']}%, and battery capacity is {stats['battery']['percent']}%."
