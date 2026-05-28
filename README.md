@@ -44,7 +44,7 @@ A **futuristic, Iron Man–inspired** personal laptop assistant built with Flask
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/jarvis.git
+git clone https://github.com/PRUTU29/jarvis.git
 cd jarvis
 
 # Install dependencies
