@@ -2301,8 +2301,8 @@ body {
 
 .jarvis-grid {
     display: grid;
-    grid-template-columns: 1.1fr 1.3fr 1.1fr;
-    gap: 20px;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 30px;
     height: 100%;
     flex-grow: 1;
     overflow: hidden;

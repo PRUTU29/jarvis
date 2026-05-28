@@ -167,20 +167,22 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!response.ok) throw new Error('API server unreachable');
             const data = await response.json();
 
-            setGaugeProgress(cpuGauge, cpuText, data.cpu);
-            setGaugeProgress(ramGauge, ramText, data.ram);
-            setGaugeProgress(diskGauge, diskText, data.disk);
+            if (cpuGauge) setGaugeProgress(cpuGauge, cpuText, data.cpu);
+            if (ramGauge) setGaugeProgress(ramGauge, ramText, data.ram);
+            if (diskGauge) setGaugeProgress(diskGauge, diskText, data.disk);
             
             const batteryPercent = data.battery ? data.battery.percent : 100;
             const isPlugged = data.battery ? data.battery.power_plugged : true;
-            setGaugeProgress(batteryGauge, batteryText, batteryPercent);
+            if (batteryGauge) setGaugeProgress(batteryGauge, batteryText, batteryPercent);
             
-            if (isPlugged) {
-                batteryPlugIcon.classList.remove('hidden');
-                batteryGauge.style.stroke = '#00ff66';
-            } else {
-                batteryPlugIcon.classList.add('hidden');
-                batteryGauge.style.stroke = batteryPercent <= 20 ? 'var(--neon-red)' : batteryPercent <= 50 ? 'var(--neon-orange)' : '#00ff66';
+            if (batteryPlugIcon && batteryGauge) {
+                if (isPlugged) {
+                    batteryPlugIcon.classList.remove('hidden');
+                    batteryGauge.style.stroke = '#00ff66';
+                } else {
+                    batteryPlugIcon.classList.add('hidden');
+                    batteryGauge.style.stroke = batteryPercent <= 20 ? 'var(--neon-red)' : batteryPercent <= 50 ? 'var(--neon-orange)' : '#00ff66';
+                }
             }
 
             if (systemUptime) systemUptime.textContent = data.uptime;

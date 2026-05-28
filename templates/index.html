@@ -47,62 +47,7 @@
             <!-- PANEL 1: Telemetry & Core Controls (Original Layout) -->
             <section class="core-telemetry-panel active" id="panel-telemetry">
                 <div class="jarvis-grid">
-                    <!-- Left: Hardware Dials -->
-                    <div class="panel glass-panel left-panel">
-                        <div class="panel-header">
-                            <i class="fa-solid fa-gauge-high panel-icon"></i>
-                            <h2>SYSTEM TELEMETRY</h2>
-                        </div>
-                        <div class="panel-content telemetry-grid">
-                            <div class="gauge-card" id="cpu-card">
-                                <div class="gauge-container">
-                                    <svg class="gauge-svg" viewBox="0 0 100 100">
-                                        <circle class="gauge-bg" cx="50" cy="50" r="40"></circle>
-                                        <circle class="gauge-progress" id="cpu-gauge" cx="50" cy="50" r="40" stroke-dasharray="251.2" stroke-dashoffset="251.2"></circle>
-                                    </svg>
-                                    <div class="gauge-value"><span id="cpu-text">0</span>%</div>
-                                </div>
-                                <h3>CPU LOADING</h3>
-                            </div>
-                            <div class="gauge-card" id="ram-card">
-                                <div class="gauge-container">
-                                    <svg class="gauge-svg" viewBox="0 0 100 100">
-                                        <circle class="gauge-bg" cx="50" cy="50" r="40"></circle>
-                                        <circle class="gauge-progress" id="ram-gauge" cx="50" cy="50" r="40" stroke-dasharray="251.2" stroke-dashoffset="251.2"></circle>
-                                    </svg>
-                                    <div class="gauge-value"><span id="ram-text">0</span>%</div>
-                                </div>
-                                <h3>MEM ALLOC</h3>
-                            </div>
-                            <div class="gauge-card" id="disk-card">
-                                <div class="gauge-container">
-                                    <svg class="gauge-svg" viewBox="0 0 100 100">
-                                        <circle class="gauge-bg" cx="50" cy="50" r="40"></circle>
-                                        <circle class="gauge-progress" id="disk-gauge" cx="50" cy="50" r="40" stroke-dasharray="251.2" stroke-dashoffset="251.2"></circle>
-                                    </svg>
-                                    <div class="gauge-value"><span id="disk-text">0</span>%</div>
-                                </div>
-                                <h3>DISK INDEX</h3>
-                            </div>
-                            <div class="gauge-card" id="battery-card">
-                                <div class="gauge-container">
-                                    <svg class="gauge-svg" viewBox="0 0 100 100">
-                                        <circle class="gauge-bg" cx="50" cy="50" r="40"></circle>
-                                        <circle class="gauge-progress" id="battery-gauge" cx="50" cy="50" r="40" stroke-dasharray="251.2" stroke-dashoffset="251.2"></circle>
-                                    </svg>
-                                    <div class="gauge-value">
-                                        <span id="battery-text">100</span>%
-                                        <i id="battery-plug-icon" class="fa-solid fa-bolt charging-icon hidden"></i>
-                                    </div>
-                                </div>
-                                <h3>POWER CORE</h3>
-                            </div>
-                        </div>
-                        <div class="system-uptime-bar">
-                            <span>UPTIME: <strong id="system-uptime">0h 0m</strong></span>
-                            <span>PLATFORM: <strong id="system-os">Windows</strong></span>
-                        </div>
-                    </div>
+
 
                     <!-- Center: Arc Reactor -->
                     <div class="center-panel">
