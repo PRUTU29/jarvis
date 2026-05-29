@@ -3,226 +3,213 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>J.A.R.V.I.S. - System Control Console</title>
+    <title>J.A.R.V.I.S. — Cyberpunk System Console</title>
+    <meta name="description" content="J.A.R.V.I.S. Personal AI Assistant — 3D Cyberpunk Holographic HUD">
     <!-- Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Inter:wght@300;400;500;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
-    <!-- FontAwesome for Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Custom Style -->
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
-    <div class="stars-container"></div>
+    <!-- Layer 0: Three.js 3D Canvas Background -->
+    <div id="three-canvas-container"></div>
+
+    <!-- Layer 1: CRT Scanline Overlay -->
     <div class="scanlines"></div>
 
-    <div class="jarvis-container">
-        <!-- Header -->
-        <header class="jarvis-header">
-            <div class="header-logo">
-                <div class="logo-orb"></div>
-                <h1>J.A.R.V.I.S.</h1>
-                <span class="sub-logo">ULTIMATE CONSOLE</span>
-            </div>
-            
-            <div class="system-status-tag" style="display: flex; align-items: center; gap: 8px; font-family: var(--font-heading); font-size: 0.8rem; color: var(--neon-cyan); letter-spacing: 1px;">
-                <span class="tagline-dot pulse-glow" style="width: 8px; height: 8px; background: var(--neon-cyan); border-radius: 50%; display: inline-block;"></span>
-                <span>SECURE STARK-TECH SYSTEM NOMINAL</span>
-            </div>
+    <!-- Layer 2: HUD UI Overlay -->
+    <div class="hud-container">
 
-            <div class="header-info">
-                <div class="info-item">
+        <!-- === TOP HEADER BAR === -->
+        <header class="hud-header">
+            <div class="header-left">
+                <div class="logo-block">
+                    <div class="logo-hex-icon"><i class="fa-solid fa-atom"></i></div>
+                    <div class="logo-text">
+                        <h1 class="glitch-text" data-text="J.A.R.V.I.S.">J.A.R.V.I.S.</h1>
+                        <span class="logo-sub">CYBERNETIC INTELLIGENCE SYSTEM v3.0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="header-center">
+                <div class="status-indicator">
+                    <span class="status-dot pulse-glow"></span>
+                    <span class="status-label">SYSTEM ONLINE</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <div class="header-info-item">
                     <i class="fa-solid fa-clock"></i>
                     <span id="digital-clock">00:00:00</span>
                 </div>
-                <div class="info-item">
+                <div class="header-info-item">
                     <i class="fa-solid fa-network-wired"></i>
                     <span id="system-node">LAPTOP</span>
                 </div>
+                <div class="header-info-item" id="system-status-text" style="display:none;"></div>
+                <div class="header-info-item" id="system-uptime" style="display:none;"></div>
+                <div class="header-info-item" id="system-os" style="display:none;"></div>
             </div>
         </header>
 
-        <!-- Main Tabbed Panel Layout -->
-        <div class="tabs-content-wrapper">
-            
-            <!-- PANEL 1: Telemetry & Core Controls (Original Layout) -->
-            <section class="core-telemetry-panel active" id="panel-telemetry">
-                <div class="jarvis-grid">
+        <!-- === MAIN HUD AREA === -->
+        <main class="hud-main">
 
-
-                    <!-- Center: Arc Reactor -->
-                    <div class="center-panel">
-                        <div class="arc-reactor-wrapper">
-                            <div class="arc-reactor" id="arc-reactor-button">
-                                <div class="arc-ring ring-outer"></div>
-                                <div class="arc-ring ring-middle"></div>
-                                <div class="arc-ring ring-inner"></div>
-                                <div class="arc-core">
-                                    <i class="fa-solid fa-microphone mic-core-icon"></i>
-                                    <div class="core-glow"></div>
-                                </div>
-                                <div class="arc-petals">
-                                    <span></span><span></span><span></span><span></span>
-                                    <span></span><span></span><span></span><span></span>
-                                </div>
-                            </div>
-                            <div class="reactor-reflection"></div>
-                        </div>
-                        <div class="voice-assistant-controls">
-                            <p class="reactor-hint" id="reactor-hint">TAP REACTOR CORE TO TRANSMIT SPEECH</p>
-                            <div class="voice-waves" id="voice-waves">
-                                <span class="wave"></span><span class="wave"></span><span class="wave"></span><span class="wave"></span><span class="wave"></span>
-                            </div>
-                            
-                            <div class="activation-options">
-                                <div class="toggle-container">
-                                    <span class="toggle-label"><i class="fa-solid fa-microphone-lines"></i> VOICE ACTIVATION (WAKE WORD)</span>
-                                    <label class="cyber-switch">
-                                        <input type="checkbox" id="wake-word-toggle">
-                                        <span class="switch-slider"></span>
-                                    </label>
-                                </div>
-                                <div class="hotkey-hint">
-                                    <span>GLOBAL SUMMON: <kbd>Ctrl+Shift+J</kbd></span>
-                                    <span>LOCAL MIC: <kbd>Spacebar</kbd> / <kbd>Alt+J</kbd></span>
-                                </div>
-                            </div>
+            <!-- LEFT GAUGES COLUMN -->
+            <div class="gauges-column gauges-left">
+                <!-- CPU Gauge -->
+                <div class="gauge-card holo-card">
+                    <div class="gauge-ring-wrapper">
+                        <svg class="gauge-svg" viewBox="0 0 120 120">
+                            <circle class="gauge-track" cx="60" cy="60" r="52" />
+                            <circle class="gauge-fill gauge-cpu" id="cpu-gauge" cx="60" cy="60" r="52" />
+                        </svg>
+                        <div class="gauge-value">
+                            <span id="cpu-text">0</span>
+                            <small>%</small>
                         </div>
                     </div>
+                    <div class="gauge-label">CPU LOAD</div>
+                </div>
+                <!-- RAM Gauge -->
+                <div class="gauge-card holo-card">
+                    <div class="gauge-ring-wrapper">
+                        <svg class="gauge-svg" viewBox="0 0 120 120">
+                            <circle class="gauge-track" cx="60" cy="60" r="52" />
+                            <circle class="gauge-fill gauge-ram" id="ram-gauge" cx="60" cy="60" r="52" />
+                        </svg>
+                        <div class="gauge-value">
+                            <span id="ram-text">0</span>
+                            <small>%</small>
+                        </div>
+                    </div>
+                    <div class="gauge-label">MEMORY</div>
+                </div>
+            </div>
 
-                    <!-- Right: Quick Controls -->
-                    <div class="panel glass-panel right-panel">
-                        <div class="panel-header">
-                            <i class="fa-solid fa-sliders panel-icon"></i>
-                            <h2>QUICK CONTROLS</h2>
-                        </div>
-                        <div class="panel-content quick-controls-deck">
-                            <div class="control-row">
-                                <div class="control-label"><i class="fa-solid fa-volume-high"></i> <span>SYSTEM VOLUME</span></div>
-                                <div class="volume-slider-container">
-                                    <button class="volume-btn" id="volume-mute-btn"><i class="fa-solid fa-volume-high" id="volume-icon"></i></button>
-                                    <input type="range" min="0" max="100" value="50" class="neon-slider" id="volume-slider">
-                                    <span class="volume-val-txt" id="volume-val-txt">50%</span>
-                                </div>
-                            </div>
-                            <button class="action-btn-neon" id="quick-screenshot-btn"><i class="fa-solid fa-camera"></i> <span>CAPTURE SCREENSHOT</span></button>
-                            <button class="action-btn-neon alert-btn" id="quick-lock-btn"><i class="fa-solid fa-lock"></i> <span>LOCK LAPTOP WORKSTATION</span></button>
-                            <div class="control-card search-card">
-                                <div class="control-label"><i class="fa-brands fa-google"></i> <span>GOOGLE CONSOLE SEARCH</span></div>
-                                <form id="dashboard-search-form" class="g-search-box">
-                                    <input type="text" placeholder="Enter query to transmit..." id="dashboard-search-input">
-                                    <button type="submit" class="g-search-btn"><i class="fa-solid fa-magnifying-glass"></i></button>
-                                </form>
-                            </div>
-                            <div class="quick-apps-deck">
-                                <h4>EXECUTIVE APP LAUNCHERS</h4>
-                                <div class="app-buttons-grid">
-                                    <button class="app-launch-icon" data-app="notepad"><i class="fa-solid fa-file-lines"></i><span>Notepad</span></button>
-                                    <button class="app-launch-icon" data-app="calculator"><i class="fa-solid fa-calculator"></i><span>Calc</span></button>
-                                    <button class="app-launch-icon" data-app="chrome"><i class="fa-brands fa-chrome"></i><span>Chrome</span></button>
-                                    <button class="app-launch-icon" data-app="cmd"><i class="fa-solid fa-terminal"></i><span>CMD</span></button>
-                                </div>
-                            </div>
-                        </div>
+            <!-- CENTER: REACTOR ZONE -->
+            <div class="reactor-zone">
+                <div class="reactor-click-area" id="arc-reactor-button">
+                    <div class="reactor-hint-text" id="reactor-hint">TAP TO TRANSMIT SPEECH</div>
+                    <div class="voice-waves" id="voice-waves">
+                        <span class="wave"></span><span class="wave"></span><span class="wave"></span>
+                        <span class="wave"></span><span class="wave"></span>
                     </div>
                 </div>
-            </section>
+                <div class="reactor-controls">
+                    <div class="toggle-row">
+                        <span class="toggle-label-text"><i class="fa-solid fa-microphone-lines"></i> WAKE WORD</span>
+                        <label class="cyber-switch">
+                            <input type="checkbox" id="wake-word-toggle">
+                            <span class="switch-slider"></span>
+                        </label>
+                    </div>
+                    <div class="hotkey-hints">
+                        <kbd>Ctrl+Shift+J</kbd>
+                        <kbd>Spacebar</kbd>
+                        <kbd>Alt+J</kbd>
+                    </div>
+                </div>
+            </div>
 
-            
-            
+            <!-- RIGHT GAUGES + QUICK CONTROLS COLUMN -->
+            <div class="gauges-column gauges-right">
+                <!-- Disk Gauge -->
+                <div class="gauge-card holo-card">
+                    <div class="gauge-ring-wrapper">
+                        <svg class="gauge-svg" viewBox="0 0 120 120">
+                            <circle class="gauge-track" cx="60" cy="60" r="52" />
+                            <circle class="gauge-fill gauge-disk" id="disk-gauge" cx="60" cy="60" r="52" />
+                        </svg>
+                        <div class="gauge-value">
+                            <span id="disk-text">0</span>
+                            <small>%</small>
+                        </div>
+                    </div>
+                    <div class="gauge-label">DISK</div>
+                </div>
+                <!-- Battery Gauge -->
+                <div class="gauge-card holo-card">
+                    <div class="gauge-ring-wrapper">
+                        <svg class="gauge-svg" viewBox="0 0 120 120">
+                            <circle class="gauge-track" cx="60" cy="60" r="52" />
+                            <circle class="gauge-fill gauge-battery" id="battery-gauge" cx="60" cy="60" r="52" />
+                        </svg>
+                        <div class="gauge-value">
+                            <span id="battery-text">0</span>
+                            <small>%</small>
+                            <i class="fa-solid fa-plug battery-plug-icon hidden" id="battery-plug-icon"></i>
+                        </div>
+                    </div>
+                    <div class="gauge-label">BATTERY</div>
+                </div>
+            </div>
+        </main>
+
+        <!-- === QUICK ACTIONS BAR === -->
+        <div class="quick-actions-bar holo-card">
+            <div class="qa-group">
+                <button class="qa-btn" id="volume-mute-btn" title="Mute/Unmute">
+                    <i class="fa-solid fa-volume-high" id="volume-icon"></i>
+                </button>
+                <input type="range" min="0" max="100" value="50" class="cyber-slider" id="volume-slider">
+                <span class="qa-value" id="volume-val-txt">50%</span>
+            </div>
+            <div class="qa-divider"></div>
+            <button class="qa-btn" id="quick-screenshot-btn" title="Screenshot">
+                <i class="fa-solid fa-camera"></i>
+                <span>CAPTURE</span>
+            </button>
+            <button class="qa-btn qa-btn-danger" id="quick-lock-btn" title="Lock PC">
+                <i class="fa-solid fa-lock"></i>
+                <span>LOCK</span>
+            </button>
+            <div class="qa-divider"></div>
+            <form id="dashboard-search-form" class="qa-search-form">
+                <input type="text" placeholder="Search Google..." id="dashboard-search-input">
+                <button type="submit"><i class="fa-solid fa-magnifying-glass"></i></button>
+            </form>
+            <div class="qa-divider"></div>
+            <div class="qa-quick-apps">
+                <button class="app-launch-icon" data-app="notepad" title="Notepad"><i class="fa-solid fa-file-lines"></i></button>
+                <button class="app-launch-icon" data-app="calculator" title="Calculator"><i class="fa-solid fa-calculator"></i></button>
+                <button class="app-launch-icon" data-app="chrome" title="Chrome"><i class="fa-brands fa-chrome"></i></button>
+                <button class="app-launch-icon" data-app="cmd" title="Terminal"><i class="fa-solid fa-terminal"></i></button>
+            </div>
         </div>
 
-        <!-- Bottom Panel: General Intelligence Chat Console & Logs (Shared) -->
-        <footer class="jarvis-footer glass-panel">
-            <div class="panel-header">
-                <i class="fa-solid fa-terminal panel-icon"></i>
-                <h2>COMMAND INTELLIGENCE LOG</h2>
-                <button class="clear-log-btn" id="clear-log-btn"><i class="fa-solid fa-trash-can"></i> CLEAR LOG</button>
+        <!-- === BOTTOM CONSOLE === -->
+        <footer class="hud-console holo-card">
+            <div class="console-header">
+                <div class="console-title">
+                    <i class="fa-solid fa-terminal"></i>
+                    <span>COMMAND INTELLIGENCE LOG</span>
+                </div>
+                <button class="console-btn" id="clear-log-btn"><i class="fa-solid fa-trash-can"></i> CLEAR</button>
             </div>
-            <div class="terminal-container">
-                <div class="terminal-body" id="terminal-body">
-                    <div class="terminal-line system-line">[SYSTEM] INITIALIZING J.A.R.V.I.S. PROTOCOLS...</div>
-                    <div class="terminal-line system-line">[SYSTEM] CORE KERNEL STACK SECURED.</div>
-                </div>
-                <div class="terminal-input-bar">
-                    <span class="prompt-symbol">&gt;&gt;</span>
-                    <input type="text" id="manual-cmd-input" placeholder="Transmit direct text command to J.A.R.V.I.S. (e.g. 'open notepad', 'volume to 40', 'screenshot')..." autocomplete="off">
-                    <button class="send-cmd-btn" id="send-cmd-btn"><i class="fa-solid fa-circle-arrow-up"></i> SEND</button>
-                </div>
+            <div class="console-body" id="terminal-body">
+                <div class="terminal-line system-line">[SYSTEM] INITIALIZING J.A.R.V.I.S. CYBERNETIC PROTOCOLS...</div>
+                <div class="terminal-line system-line">[SYSTEM] 3D HOLOGRAPHIC CORE ENGINE ONLINE.</div>
+                <div class="terminal-line system-line">[SYSTEM] ALL SUBSYSTEMS NOMINAL. AWAITING COMMAND.</div>
+            </div>
+            <div class="console-input-bar">
+                <span class="prompt-symbol">&gt;&gt;</span>
+                <input type="text" id="manual-cmd-input" placeholder="Transmit command to J.A.R.V.I.S. (e.g. 'open notepad', 'volume to 40', 'screenshot')..." autocomplete="off">
+                <button class="console-send-btn" id="send-cmd-btn"><i class="fa-solid fa-paper-plane"></i> SEND</button>
             </div>
         </footer>
     </div>
 
-    <!-- Screenshot Preview Modal -->
-    <div class="modal-overlay hidden" id="screenshot-modal">
-        <div class="modal-content glass-panel">
-            <div class="modal-header">
-                <h3>SCREENSHOT CAPTURE PREVIEW</h3>
-                <button class="close-modal-btn" id="close-modal-btn">&times;</button>
-            </div>
-            <div class="modal-body">
-                <img id="screenshot-preview-img" src="" alt="Latest Screenshot Capture">
-            </div>
-            <div class="modal-footer">
-                <a id="screenshot-download-link" href="" download="jarvis_screenshot.png" class="action-btn-neon">
-                    <div class="btn-glow-border"></div>
-                    <i class="fa-solid fa-download"></i> DOWNLOAD CAPTURE
-                </a>
-            </div>
-        </div>
-    </div>
-
-    <!-- Email Reader Full Modal -->
-    <div class="modal-overlay hidden" id="email-reader-modal">
-        <div class="modal-content glass-panel email-reader-content">
-            <div class="modal-header">
-                <h3 id="email-view-subject">Subject Header</h3>
-                <button class="close-modal-btn" id="close-email-btn">&times;</button>
-            </div>
-            <div class="modal-body email-reader-body">
-                <div class="email-metadata-block">
-                    <div>FROM: <strong id="email-view-sender">Sender Name</strong></div>
-                    <div>RECEIVED: <span id="email-view-time">Received Date</span></div>
-                    <div class="email-view-badge" id="email-view-category">Work</div>
-                </div>
-                <div class="email-text-content" id="email-view-body">
-                    Email content paragraph body.
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="action-btn-neon" id="close-email-btn-footer">
-                    <div class="btn-glow-border"></div>
-                    <i class="fa-solid fa-circle-check"></i> ACKNOWLEDGE MESSAGE
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Toast Notification Container -->
-    <div class="toast-container" id="toast-container"></div>
-
-    <!-- Command Palette Overlay (Ctrl+K) -->
-    <div class="modal-overlay hidden" id="command-palette-modal">
-        <div class="command-palette glass-panel">
-            <div class="palette-search-bar">
-                <i class="fa-solid fa-bolt"></i>
-                <input type="text" id="palette-search-input" placeholder="Type a command, app name, or action..." autocomplete="off">
-                <kbd>ESC</kbd>
-            </div>
-            <div class="palette-results" id="palette-results">
-                <div class="palette-hint">Start typing to search commands, apps, and actions...</div>
-            </div>
-        </div>
-    </div>
-
-    
-    <!-- Floating Side Trigger Button -->
+    <!-- === FLOATING UTILITIES TRIGGER === -->
     <button id="sidebar-drawer-trigger" class="floating-drawer-btn" title="Open Advanced Utilities">
         <i class="fa-solid fa-gears"></i>
         <span>UTILITIES</span>
     </button>
 
-    <!-- Frosted Glass Slide-Out Utility Drawer -->
-    <div id="utility-drawer" class="utility-drawer glass-panel">
+    <!-- === SLIDE-OUT UTILITY DRAWER === -->
+    <div id="utility-drawer" class="utility-drawer">
         <div class="drawer-header">
             <h3><i class="fa-solid fa-screwdriver-wrench"></i> ADVANCED UTILITIES</h3>
             <button class="close-drawer-btn" id="close-drawer-btn">&times;</button>
@@ -245,75 +232,61 @@
             </button>
         </nav>
         <div class="drawer-content-wrapper">
-            <!-- PANEL 2: Scanned Installed Applications Deck -->
+            <!-- PANEL: Apps Deck -->
             <section class="tab-panel hidden" id="panel-apps">
-                <div class="panel glass-panel full-width-panel">
-                    <div class="panel-header">
-                        <i class="fa-solid fa-cubes panel-icon"></i>
-                        <h2>EXECUTIVE APPLICATION DECK</h2>
-                        <div class="apps-search-bar">
+                <div class="drawer-panel">
+                    <div class="drawer-panel-header">
+                        <h2><i class="fa-solid fa-cubes"></i> APPLICATION DECK</h2>
+                        <div class="drawer-search-bar">
                             <i class="fa-solid fa-magnifying-glass"></i>
-                            <input type="text" id="apps-filter-input" placeholder="Search scanned PC applications...">
+                            <input type="text" id="apps-filter-input" placeholder="Search applications...">
                         </div>
                     </div>
-                    <div class="panel-content">
-                        <div class="apps-stats-banner">
-                            <span>TOTAL SCANNED APPLICATIONS: <strong id="apps-count-txt">0</strong></span>
-                            <span>SOURCE: <strong>Windows Start Menu Directories</strong></span>
-                        </div>
-                        <div class="scanned-apps-grid" id="scanned-apps-grid">
-                            <!-- Apps injected dynamically by Javascript -->
-                            <div class="sys-loader"><i class="fa-solid fa-circle-notch fa-spin"></i> Indexing systems shortcuts...</div>
-                        </div>
+                    <div class="apps-stats-banner">
+                        <span>INDEXED: <strong id="apps-count-txt">0</strong></span>
+                        <span>SOURCE: <strong>Windows Start Menu</strong></span>
+                    </div>
+                    <div class="scanned-apps-grid" id="scanned-apps-grid">
+                        <div class="sys-loader"><i class="fa-solid fa-circle-notch fa-spin"></i> Indexing system shortcuts...</div>
                     </div>
                 </div>
             </section>
 
-            <!-- PANEL 3: Glassmorphic File Explorer & Local Search -->
+            <!-- PANEL: File Explorer -->
             <section class="tab-panel hidden" id="panel-files">
                 <div class="file-explorer-layout">
-                    <!-- Left: Navigation Sidebar Tree -->
-                    <div class="panel glass-panel file-sidebar">
-                        <div class="panel-header">
-                            <i class="fa-solid fa-compass panel-icon"></i>
-                            <h2>QUICK ACCESS</h2>
-                        </div>
-                        <div class="panel-content sidebar-quick-links">
+                    <div class="file-sidebar">
+                        <div class="drawer-panel-header"><h2><i class="fa-solid fa-compass"></i> QUICK ACCESS</h2></div>
+                        <div class="sidebar-quick-links">
                             <button class="sidebar-link active" data-shortcut="user"><i class="fa-solid fa-user-gear"></i> User Profile</button>
                             <button class="sidebar-link" data-shortcut="desktop"><i class="fa-solid fa-desktop"></i> Desktop</button>
                             <button class="sidebar-link" data-shortcut="documents"><i class="fa-solid fa-file-invoice"></i> Documents</button>
                             <button class="sidebar-link" data-shortcut="downloads"><i class="fa-solid fa-cloud-arrow-down"></i> Downloads</button>
                         </div>
                     </div>
-
-                    <!-- Right: Directory Browser Table -->
-                    <div class="panel glass-panel file-main-explorer">
-                        <div class="panel-header explorer-top-header">
+                    <div class="file-main-explorer">
+                        <div class="explorer-top-header">
                             <div class="path-navigation">
-                                <button class="explorer-nav-btn" id="explorer-back-btn" title="Back to parent folder"><i class="fa-solid fa-arrow-left"></i></button>
+                                <button class="explorer-nav-btn" id="explorer-back-btn" title="Back"><i class="fa-solid fa-arrow-left"></i></button>
                                 <span class="path-text" id="explorer-path-txt">C:\Users\username</span>
                             </div>
                             <div class="files-search-bar">
-                                <i class="fa-solid fa-file-magnifying-glass"></i>
-                                <input type="text" id="files-search-input" placeholder="Search filenames recursively...">
-                                <button id="files-search-btn" class="g-search-btn"><i class="fa-solid fa-magnifying-glass"></i></button>
+                                <input type="text" id="files-search-input" placeholder="Search filenames...">
+                                <button id="files-search-btn"><i class="fa-solid fa-magnifying-glass"></i></button>
                             </div>
                         </div>
-                        <div class="panel-content files-table-wrapper">
+                        <div class="files-table-wrapper">
                             <table class="files-table">
                                 <thead>
                                     <tr>
                                         <th width="50%">NAME</th>
                                         <th width="15%">TYPE</th>
                                         <th width="15%">SIZE</th>
-                                        <th width="20%">MODIFIED DATE</th>
+                                        <th width="20%">MODIFIED</th>
                                     </tr>
                                 </thead>
                                 <tbody id="files-tbody">
-                                    <!-- Files injected dynamically -->
-                                    <tr>
-                                        <td colspan="4" class="table-loading"><i class="fa-solid fa-circle-notch fa-spin"></i> Initializing disk directories...</td>
-                                    </tr>
+                                    <tr><td colspan="4" class="table-loading"><i class="fa-solid fa-circle-notch fa-spin"></i> Initializing...</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -321,22 +294,18 @@
                 </div>
             </section>
 
-            <!-- PANEL 4: Email Intelligence Hub -->
+            <!-- PANEL: Email Hub -->
             <section class="tab-panel hidden" id="panel-mail">
                 <div class="mail-hub-layout">
-                    <!-- Left: Categorical Mailboxes list -->
-                    <div class="panel glass-panel mail-folders-sidebar">
-                        <div class="panel-header">
-                            <i class="fa-solid fa-inbox panel-icon"></i>
-                            <h2>MAILBOXES</h2>
-                        </div>
-                        <div class="panel-content mail-folders-list">
+                    <div class="mail-folders-sidebar">
+                        <div class="drawer-panel-header"><h2><i class="fa-solid fa-inbox"></i> MAILBOXES</h2></div>
+                        <div class="mail-folders-list">
                             <button class="mail-folder-btn active" data-folder="all">
                                 <i class="fa-solid fa-envelopes-bulk"></i> <span>All Inboxes</span>
                                 <span class="mail-badge count-all">0</span>
                             </button>
                             <button class="mail-folder-btn" data-folder="work">
-                                <i class="fa-solid fa-briefcase"></i> <span>Work / Corporate</span>
+                                <i class="fa-solid fa-briefcase"></i> <span>Work</span>
                                 <span class="mail-badge count-work">0</span>
                             </button>
                             <button class="mail-folder-btn" data-folder="financial">
@@ -344,7 +313,7 @@
                                 <span class="mail-badge count-financial">0</span>
                             </button>
                             <button class="mail-folder-btn" data-folder="alerts">
-                                <i class="fa-solid fa-triangle-exclamation"></i> <span>System Alerts</span>
+                                <i class="fa-solid fa-triangle-exclamation"></i> <span>Alerts</span>
                                 <span class="mail-badge count-alerts">0</span>
                             </button>
                             <button class="mail-folder-btn" data-folder="personal">
@@ -357,95 +326,150 @@
                             </button>
                         </div>
                         <div class="mail-sync-footer">
-                            <span class="mail-source-tag">SOURCE: <strong id="mail-source-txt">LOCAL OUTLOOK</strong></span>
-                            <button class="sync-mail-btn" id="sync-mail-btn" title="Force Sync Inbox"><i class="fa-solid fa-rotate"></i> REFRESH</button>
+                            <span class="mail-source-tag">SOURCE: <strong id="mail-source-txt">IMAP/OUTLOOK</strong></span>
+                            <button class="sync-mail-btn" id="sync-mail-btn"><i class="fa-solid fa-rotate"></i> REFRESH</button>
                         </div>
                     </div>
-
-                    <!-- Right: Email list preview deck -->
-                    <div class="panel glass-panel mail-preview-panel">
-                        <div class="panel-header mail-header-bar">
+                    <div class="mail-preview-panel">
+                        <div class="mail-header-bar">
                             <h2 id="mail-folder-title">ALL INBOXES</h2>
                             <div class="mail-search-bar">
                                 <i class="fa-solid fa-magnifying-glass"></i>
                                 <input type="text" id="mail-filter-input" placeholder="Search subjects or senders...">
                             </div>
                         </div>
-                        <div class="panel-content mail-list-deck" id="mail-list-deck">
-                            <!-- Injected dynamically -->
-                            <div class="sys-loader"><i class="fa-solid fa-circle-notch fa-spin"></i> Syncing local Microsoft Outlook databases...</div>
+                        <div class="mail-list-deck" id="mail-list-deck">
+                            <div class="sys-loader"><i class="fa-solid fa-circle-notch fa-spin"></i> Syncing mailboxes...</div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- PANEL 5: Sandboxed Full Terminal Console Shell -->
+            <!-- PANEL: Shell -->
             <section class="tab-panel hidden" id="panel-terminal">
-                <div class="panel glass-panel full-width-panel terminal-full-panel">
-                    <div class="panel-header">
-                        <i class="fa-solid fa-square-terminal panel-icon"></i>
-                        <h2>SANDBOXED SECURE SHELL</h2>
-                        <span class="terminal-limits-tag">EXECUTION TIME CONSTRAINT: 5.0 SECONDS</span>
+                <div class="drawer-panel terminal-full-panel">
+                    <div class="drawer-panel-header">
+                        <h2><i class="fa-solid fa-square-terminal"></i> SANDBOXED SECURE SHELL</h2>
+                        <span class="terminal-limits-tag">TIMEOUT: 5.0s</span>
                     </div>
-                    <div class="panel-content full-terminal-wrapper">
+                    <div class="full-terminal-wrapper">
                         <div class="full-terminal-output" id="full-terminal-output">
                             <div class="term-line">Microsoft Windows [Version 10.0]</div>
-                            <div class="term-line">J.A.R.V.I.S. Secure Sandbox Terminal Interface Online.</div>
-                            <div class="term-line">Type shell commands directly. Blocks destructive operations automatically.</div>
+                            <div class="term-line">J.A.R.V.I.S. Secure Sandbox Terminal Online.</div>
+                            <div class="term-line">Blocks destructive operations automatically.</div>
                             <div class="term-line">&nbsp;</div>
                         </div>
                         <div class="full-terminal-input-bar">
                             <span class="term-prompt">C:\Users\Laptop&gt;</span>
-                            <input type="text" id="full-terminal-input" placeholder="Execute system command (e.g. 'ping google.com', 'tasklist', 'ipconfig')..." autocomplete="off">
+                            <input type="text" id="full-terminal-input" placeholder="Execute command (e.g. 'ipconfig', 'tasklist')..." autocomplete="off">
                             <button id="full-terminal-send-btn"><i class="fa-solid fa-circle-chevron-right"></i> RUN</button>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- PANEL 6: Process Manager -->
+            <!-- PANEL: Processes -->
             <section class="tab-panel hidden" id="panel-processes">
-                <div class="panel glass-panel full-width-panel">
-                    <div class="panel-header">
-                        <i class="fa-solid fa-microchip panel-icon"></i>
-                        <h2>SYSTEM PROCESS MANAGER</h2>
+                <div class="drawer-panel">
+                    <div class="drawer-panel-header">
+                        <h2><i class="fa-solid fa-microchip"></i> SYSTEM PROCESSES</h2>
                         <div class="process-header-actions">
-                            <div class="apps-search-bar" style="width:260px;">
+                            <div class="drawer-search-bar" style="width:220px;">
                                 <i class="fa-solid fa-magnifying-glass"></i>
-                                <input type="text" id="process-filter-input" placeholder="Filter processes...">
+                                <input type="text" id="process-filter-input" placeholder="Filter...">
                             </div>
-                            <button class="action-btn-neon" id="refresh-processes-btn" style="width:auto; padding:8px 16px;">
-                                <i class="fa-solid fa-rotate"></i> REFRESH
-                            </button>
+                            <button class="cyber-btn-sm" id="refresh-processes-btn"><i class="fa-solid fa-rotate"></i> REFRESH</button>
                         </div>
                     </div>
-                    <div class="panel-content">
-                        <div class="process-stats-banner">
-                            <span>ACTIVE PROCESSES: <strong id="process-count-txt">0</strong></span>
-                            <span>TOTAL MEMORY: <strong id="process-mem-total">0 MB</strong></span>
-                        </div>
-                        <div class="files-table-wrapper" style="max-height:500px;">
-                            <table class="files-table process-table">
-                                <thead>
-                                    <tr>
-                                        <th width="8%">PID</th>
-                                        <th width="35%">PROCESS NAME</th>
-                                        <th width="15%">CPU %</th>
-                                        <th width="17%">MEMORY</th>
-                                        <th width="12%">STATUS</th>
-                                        <th width="13%">ACTION</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="process-tbody">
-                                    <tr><td colspan="6" class="table-loading"><i class="fa-solid fa-circle-notch fa-spin"></i> Scanning system processes...</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
+                    <div class="process-stats-banner">
+                        <span>ACTIVE: <strong id="process-count-txt">0</strong></span>
+                        <span>TOTAL MEM: <strong id="process-mem-total">0 MB</strong></span>
+                    </div>
+                    <div class="files-table-wrapper" style="max-height:500px;">
+                        <table class="files-table process-table">
+                            <thead>
+                                <tr>
+                                    <th width="8%">PID</th>
+                                    <th width="35%">PROCESS</th>
+                                    <th width="15%">CPU %</th>
+                                    <th width="17%">MEMORY</th>
+                                    <th width="12%">STATUS</th>
+                                    <th width="13%">ACTION</th>
+                                </tr>
+                            </thead>
+                            <tbody id="process-tbody">
+                                <tr><td colspan="6" class="table-loading"><i class="fa-solid fa-circle-notch fa-spin"></i> Scanning...</td></tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </section>
         </div>
     </div>
-<script src="/static/js/app.js"></script>
+
+    <!-- === MODALS === -->
+
+    <!-- Screenshot Modal -->
+    <div class="modal-overlay hidden" id="screenshot-modal">
+        <div class="modal-content holo-card">
+            <div class="modal-header">
+                <h3>SCREENSHOT CAPTURE</h3>
+                <button class="close-modal-btn" id="close-modal-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <img id="screenshot-preview-img" src="" alt="Screenshot">
+            </div>
+            <div class="modal-footer">
+                <a id="screenshot-download-link" href="" download="jarvis_screenshot.png" class="cyber-btn">
+                    <i class="fa-solid fa-download"></i> DOWNLOAD
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Email Reader Modal -->
+    <div class="modal-overlay hidden" id="email-reader-modal">
+        <div class="modal-content holo-card email-reader-content">
+            <div class="modal-header">
+                <h3 id="email-view-subject">Subject</h3>
+                <button class="close-modal-btn" id="close-email-btn">&times;</button>
+            </div>
+            <div class="modal-body email-reader-body">
+                <div class="email-metadata-block">
+                    <div>FROM: <strong id="email-view-sender">Sender</strong></div>
+                    <div>RECEIVED: <span id="email-view-time">Date</span></div>
+                    <div class="email-view-badge" id="email-view-category">Work</div>
+                </div>
+                <div class="email-text-content" id="email-view-body">Email body.</div>
+            </div>
+            <div class="modal-footer">
+                <button class="cyber-btn" id="close-email-btn-footer">
+                    <i class="fa-solid fa-circle-check"></i> ACKNOWLEDGE
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Command Palette (Ctrl+K) -->
+    <div class="modal-overlay hidden" id="command-palette-modal">
+        <div class="command-palette holo-card">
+            <div class="palette-search-bar">
+                <i class="fa-solid fa-bolt"></i>
+                <input type="text" id="palette-search-input" placeholder="Type a command, app name, or action..." autocomplete="off">
+                <kbd>ESC</kbd>
+            </div>
+            <div class="palette-results" id="palette-results">
+                <div class="palette-hint">Start typing to search commands, apps, and actions...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.164.0/build/three.min.js"></script>
+    <script src="/static/js/three-scene.js"></script>
+    <script src="/static/js/app.js"></script>
 </body>
 </html>

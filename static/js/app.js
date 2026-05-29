@@ -104,7 +104,27 @@ document.addEventListener('DOMContentLoaded', () => {
     let allEmailsList = [];
     let activeMailboxFolder = "all";
     
-    const GAUGE_CIRCUMFERENCE = 251.2;
+    const GAUGE_CIRCUMFERENCE = 326.73; // 2 * PI * 52 (new SVG gauge radius)
+
+    // --- 0. THREE.JS 3D SCENE INITIALIZATION ---
+    if (window.JarvisScene) {
+        const canvasContainer = document.getElementById('three-canvas-container');
+        if (canvasContainer) {
+            try {
+                window.JarvisScene.init(canvasContainer);
+                console.log('[SYSTEM] 3D Holographic Core Engine initialized.');
+            } catch (e) {
+                console.warn('[SYSTEM] 3D scene failed to initialize:', e);
+            }
+        }
+    }
+
+    // Helper: sync reactor state to Three.js scene
+    function syncReactorState(state) {
+        if (window.JarvisScene && window.JarvisScene.setReactorState) {
+            window.JarvisScene.setReactorState(state);
+        }
+    }
 
     // --- 1. DIGITAL CLOCK LOGIC ---
     function updateClock() {
@@ -755,6 +775,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         utterance.onstart = () => {
             isSpeaking = true;
+            syncReactorState('speaking');
             centerPanel.classList.remove('listening');
             centerPanel.classList.add('speaking');
             reactorHint.textContent = "J.A.R.V.I.S. RESPONDING...";
@@ -763,6 +784,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         utterance.onend = () => {
             isSpeaking = false;
+            syncReactorState('idle');
             centerPanel.classList.remove('speaking');
             if (isWakeWordMode) {
                 reactorHint.textContent = "WAKE WORD DETECT ACTIVE: SAY 'JARVIS'";
@@ -777,6 +799,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         utterance.onerror = (e) => {
             isSpeaking = false;
+            syncReactorState('idle');
             centerPanel.classList.remove('speaking');
             if (isWakeWordMode) resumeContinuousListening();
             else reactorHint.textContent = "TAP REACTOR CORE TO TRANSMIT SPEECH";
@@ -802,6 +825,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         recognition.onstart = () => {
             isListening = true;
+            syncReactorState('listening');
             centerPanel.classList.add('listening');
             if (isWakeWordMode) {
                 reactorHint.textContent = isWokenUp ? "AWAITING INTENT COMMAND..." : "SAY 'JARVIS' TO WAKE ASSISTANT";
@@ -812,6 +836,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         recognition.onerror = (event) => {
             isListening = false;
+            syncReactorState('idle');
             centerPanel.classList.remove('listening');
             if (event.error !== 'no-speech' && event.error !== 'aborted') {
                 appendTerminalLog('SYSTEM', `Speech warning: ${event.error}`, 'system');
@@ -820,6 +845,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         recognition.onend = () => {
             isListening = false;
+            syncReactorState('error');
             centerPanel.classList.remove('listening');
             if (isWakeWordMode && !isSpeaking) {
                 resumeContinuousListening();
