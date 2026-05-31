@@ -238,8 +238,33 @@ def take_screenshot():
 # 2. START MENU WINDOWS APPLICATION SCANNER
 # ==========================================================================
 
+# Global app cache
+_app_cache = {"apps": [], "timestamp": 0, "ttl": 600}  # 10-min cache
+
+APP_ALIASES = {
+    "dolby": "Dolby Access", "dolby atmos": "Dolby Access",
+    "amazon music": "Amazon Music", "amazon": "Amazon Music",
+    "whatsapp": "WhatsApp", "wa": "WhatsApp",
+    "mail": "Outlook", "outlook": "Outlook",
+    "spotify": "Spotify", "netflix": "Netflix",
+    "teams": "Microsoft Teams", "zoom": "Zoom",
+    "vscode": "Visual Studio Code", "code": "Visual Studio Code",
+    "word": "Word", "excel": "Excel", "powerpoint": "PowerPoint",
+    "discord": "Discord", "telegram": "Telegram",
+    "vlc": "VLC media player", "firefox": "Firefox",
+    "notepad": "Notepad", "calculator": "Calculator",
+    "chrome": "Google Chrome", "edge": "Microsoft Edge",
+    "paint": "Paint", "snip": "Snipping Tool",
+}
+
 def get_installed_apps():
-    """Scans Windows Start Menu shortcut folders (.lnk) recursively."""
+    """Scans Windows Start Menu, Taskbar, and UWP Store apps with caching."""
+    global _app_cache
+    
+    # Check cache first
+    if _app_cache["apps"] and (time.time() - _app_cache["timestamp"]) < _app_cache["ttl"]:
+        return _app_cache["apps"]
+    
     app_list = []
     
     # Standard Windows Start Menu locations
@@ -248,18 +273,23 @@ def get_installed_apps():
     # 1. System-wide Start Menu Programs
     program_data_menu = os.path.join(os.environ.get("ProgramData", "C:\\ProgramData"), "Microsoft\\Windows\\Start Menu\\Programs")
     if os.path.exists(program_data_menu):
-        scan_paths.append(program_data_menu)
+        scan_paths.append((program_data_menu, "startmenu"))
         
     # 2. User-specific Start Menu Programs
     user_app_data = os.environ.get("APPDATA")
     if user_app_data:
         user_menu = os.path.join(user_app_data, "Microsoft\\Windows\\Start Menu\\Programs")
         if os.path.exists(user_menu):
-            scan_paths.append(user_menu)
+            scan_paths.append((user_menu, "startmenu"))
+    
+    # 3. Taskbar pinned shortcuts
+    taskbar_path = os.path.join(os.environ.get('APPDATA', ''), 'Microsoft', 'Internet Explorer', 'Quick Launch', 'User Pinned', 'TaskBar')
+    if os.path.exists(taskbar_path):
+        scan_paths.append((taskbar_path, "taskbar"))
             
     seen_apps = set()
     
-    for base_path in scan_paths:
+    for base_path, source in scan_paths:
         try:
             # Recursively find all shortcut files (.lnk)
             for root, dirs, files in os.walk(base_path):
@@ -278,10 +308,33 @@ def get_installed_apps():
                         seen_apps.add(lower_name)
                         app_list.append({
                             "name": app_name,
-                            "path": full_path
+                            "path": full_path,
+                            "source": source
                         })
         except Exception as e:
             print(f"Error scanning programs path '{base_path}': {e}")
+    
+    # 4. Scan UWP/Store apps via PowerShell
+    try:
+        result = subprocess.run(
+            ['powershell', '-NoProfile', '-Command',
+             'Get-StartApps | ConvertTo-Json -Depth 1'],
+            capture_output=True, text=True, timeout=10
+        )
+        if result.returncode == 0 and result.stdout.strip():
+            import json as _json
+            uwp_apps = _json.loads(result.stdout)
+            if isinstance(uwp_apps, dict): uwp_apps = [uwp_apps]
+            for ua in uwp_apps:
+                name = ua.get('Name', '')
+                app_id = ua.get('AppID', '')
+                if name and app_id:
+                    lower_name = name.lower().strip()
+                    if lower_name not in seen_apps and not any(block in lower_name for block in ['uninstall', 'readme', 'setup', 'help', 'about']):
+                        seen_apps.add(lower_name)
+                        app_list.append({"name": name, "path": f"shell:AppsFolder\\{app_id}", "source": "uwp"})
+    except Exception as e:
+        print(f"[UWP Scanner] Could not enumerate Store apps: {e}")
             
     # Sort alphabetically
     app_list.sort(key=lambda x: x["name"].lower())
@@ -289,13 +342,59 @@ def get_installed_apps():
     # Fallback default items if scanner returned nothing
     if not app_list:
         app_list = [
-            {"name": "Notepad", "path": "notepad.exe"},
-            {"name": "Calculator", "path": "calc.exe"},
-            {"name": "Command Prompt", "path": "cmd.exe"},
-            {"name": "Paint", "path": "mspaint.exe"}
+            {"name": "Notepad", "path": "notepad.exe", "source": "fallback"},
+            {"name": "Calculator", "path": "calc.exe", "source": "fallback"},
+            {"name": "Command Prompt", "path": "cmd.exe", "source": "fallback"},
+            {"name": "Paint", "path": "mspaint.exe", "source": "fallback"}
         ]
+    
+    # Cache the result
+    _app_cache["apps"] = app_list
+    _app_cache["timestamp"] = time.time()
         
     return app_list
+
+
+def find_best_app_match(query, apps):
+    """3-tier app matching: exact -> alias -> fuzzy substring."""
+    query_lower = query.lower().strip()
+    
+    # Tier 1: Exact name match
+    for app in apps:
+        if app["name"].lower().strip() == query_lower:
+            return app
+    
+    # Tier 2: Alias dictionary match
+    if query_lower in APP_ALIASES:
+        alias_target = APP_ALIASES[query_lower].lower()
+        for app in apps:
+            if app["name"].lower().strip() == alias_target:
+                return app
+    
+    # Tier 3: Fuzzy substring match (best match by shortest name containing query)
+    candidates = []
+    for app in apps:
+        app_lower = app["name"].lower()
+        if query_lower in app_lower or app_lower in query_lower:
+            candidates.append(app)
+    
+    if candidates:
+        # Prefer shortest name (most specific match)
+        candidates.sort(key=lambda a: len(a["name"]))
+        return candidates[0]
+    
+    # Tier 4: Word-level partial match
+    query_words = set(query_lower.split())
+    best_match = None
+    best_score = 0
+    for app in apps:
+        app_words = set(app["name"].lower().split())
+        overlap = len(query_words & app_words)
+        if overlap > best_score:
+            best_score = overlap
+            best_match = app
+    
+    return best_match if best_score > 0 else None
 
 
 # ==========================================================================
@@ -711,6 +810,89 @@ def run_shell_command(command_str):
 
 
 # ==========================================================================
+# 5b. GEMINI AI CHATBOT ENGINE
+# ==========================================================================
+
+import json
+import urllib.request
+import urllib.error
+
+# Conversation history for context
+_chat_history = []
+_MAX_HISTORY = 10
+
+def load_config():
+    """Loads config.json for API keys and email settings."""
+    config_path = os.path.join(os.path.dirname(__file__), 'config.json')
+    try:
+        with open(config_path, 'r') as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+def chat_with_gemini(user_message):
+    """Sends a message to Gemini API and returns the response."""
+    global _chat_history
+    config = load_config()
+    api_key = config.get("gemini_api_key", "")
+    
+    if not api_key:
+        return None  # No API key configured, skip AI
+    
+    # Build conversation with system prompt
+    system_prompt = (
+        "You are J.A.R.V.I.S., a witty, sophisticated, and highly capable AI assistant "
+        "inspired by Tony Stark's AI from Iron Man. You address the user as 'sir'. "
+        "You are running as a desktop assistant on the user's Windows laptop. "
+        "Keep responses concise (2-3 sentences max) unless the user asks for detailed explanations. "
+        "Be helpful, intelligent, and slightly humorous."
+    )
+    
+    # Build contents array with history
+    contents = []
+    for entry in _chat_history[-_MAX_HISTORY:]:
+        contents.append({"role": entry["role"], "parts": [{"text": entry["text"]}]})
+    contents.append({"role": "user", "parts": [{"text": user_message}]})
+    
+    payload = {
+        "system_instruction": {"parts": [{"text": system_prompt}]},
+        "contents": contents,
+        "generationConfig": {
+            "temperature": 0.7,
+            "maxOutputTokens": 300
+        }
+    }
+    
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
+    
+    try:
+        req = urllib.request.Request(
+            url,
+            data=json.dumps(payload).encode('utf-8'),
+            headers={'Content-Type': 'application/json'},
+            method='POST'
+        )
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            result = json.loads(resp.read().decode('utf-8'))
+            ai_text = result.get('candidates', [{}])[0].get('content', {}).get('parts', [{}])[0].get('text', '')
+            
+            if ai_text:
+                # Save to history
+                _chat_history.append({"role": "user", "text": user_message})
+                _chat_history.append({"role": "model", "text": ai_text})
+                # Trim history
+                if len(_chat_history) > _MAX_HISTORY * 2:
+                    _chat_history = _chat_history[-_MAX_HISTORY * 2:]
+                return ai_text
+    except urllib.error.HTTPError as e:
+        print(f"[Gemini API] HTTP Error {e.code}: {e.read().decode()[:200]}")
+    except Exception as e:
+        print(f"[Gemini API] Error: {e}")
+    
+    return None
+
+
+# ==========================================================================
 # 6. COMMAND PARSER INTENT ENGINE (NATIVE OS CALLS)
 # ==========================================================================
 
@@ -828,42 +1010,40 @@ def parse_and_execute_command(command_text):
     elif "open" in cmd or "launch" in cmd:
         app_name = cmd.replace("open", "").replace("launch", "").strip()
         
-        # Scanned app launcher search
         apps = get_installed_apps()
         launched = False
         
-        for app in apps:
-            if app["name"].lower().strip() == app_name:
-                try:
-                    os.startfile(app["path"])
-                    response["message"] = f"Opening {app['name']} for you, sir."
-                    response["action"] = "launch"
-                    response["details"] = f"Launched {app['path']}"
-                    launched = True
-                    break
-                except Exception as e:
-                    print(f"Failed direct shortcut launch: {e}")
-                    
+        # Use fuzzy matching
+        best_match = find_best_app_match(app_name, apps)
+        if best_match:
+            try:
+                os.startfile(best_match["path"])
+                response["message"] = f"Opening {best_match['name']} for you, sir."
+                response["action"] = "launch"
+                response["details"] = f"Launched: {best_match['name']}"
+                launched = True
+            except Exception as e:
+                print(f"Failed to launch {best_match['name']}: {e}")
+        
         # Check standard Windows app keywords
         if not launched:
             windows_apps = {
                 "notepad": "notepad.exe",
-                "calculator": "calc.exe",
-                "calc": "calc.exe",
+                "calculator": "calc.exe", "calc": "calc.exe",
                 "paint": "mspaint.exe",
-                "command prompt": "cmd.exe",
-                "cmd": "cmd.exe",
-                "task manager": "taskmgr.exe",
-                "taskmgr": "taskmgr.exe",
-                "explorer": "explorer.exe",
-                "file explorer": "explorer.exe",
-                "chrome": "chrome.exe",
-                "edge": "msedge.exe"
+                "command prompt": "cmd.exe", "cmd": "cmd.exe",
+                "task manager": "taskmgr.exe", "taskmgr": "taskmgr.exe",
+                "explorer": "explorer.exe", "file explorer": "explorer.exe",
+                "chrome": "chrome.exe", "edge": "msedge.exe",
+                "settings": "ms-settings:",
             }
             for key, exe in windows_apps.items():
                 if key in app_name:
                     try:
-                        subprocess.Popen(exe, shell=True)
+                        if exe.startswith("ms-"):
+                            os.startfile(exe)
+                        else:
+                            subprocess.Popen(exe, shell=True)
                         response["message"] = f"Opening {key.capitalize()} for you, sir."
                         response["action"] = "launch"
                         launched = True
@@ -872,40 +1052,34 @@ def parse_and_execute_command(command_text):
                     
         # Special web URLs
         if not launched:
-            if "browser" in app_name or "google" in app_name or "internet" in app_name:
-                webbrowser.open("https://www.google.com")
-                response["message"] = "Opening your default internet browser, sir."
-                response["action"] = "launch"
-                launched = True
-            elif "youtube" in app_name:
-                webbrowser.open("https://www.youtube.com")
-                response["message"] = "Opening YouTube, sir."
-                response["action"] = "launch"
-                launched = True
-            elif "spotify" in app_name:
-                webbrowser.open("https://open.spotify.com")
-                response["message"] = "Launching Spotify web player, sir."
-                response["action"] = "launch"
-                launched = True
-            elif "whatsapp" in app_name:
-                try:
-                    os.startfile("whatsapp://")
-                    response["message"] = "Opening WhatsApp Desktop, sir."
-                except Exception:
-                    webbrowser.open("https://web.whatsapp.com")
-                    response["message"] = "Launching WhatsApp Web, sir."
-                response["action"] = "launch"
-                launched = True
-            else:
-                # Direct OS shell launch fallback
-                try:
-                    subprocess.Popen(app_name, shell=True)
-                    response["message"] = f"Attempting to launch '{app_name}' via OS shell, sir."
+            web_map = {
+                "browser": "https://www.google.com", "google": "https://www.google.com",
+                "internet": "https://www.google.com", "youtube": "https://www.youtube.com",
+                "spotify": "https://open.spotify.com", "github": "https://github.com",
+                "gmail": "https://mail.google.com", "chatgpt": "https://chat.openai.com",
+            }
+            for key, url in web_map.items():
+                if key in app_name:
+                    webbrowser.open(url)
+                    response["message"] = f"Opening {key.capitalize()} in your browser, sir."
                     response["action"] = "launch"
                     launched = True
-                except Exception as e:
-                    response["status"] = "error"
-                    response["message"] = f"Could not launch '{app_name}': {str(e)}"
+                    break
+            
+        # WhatsApp special handling
+        if not launched and "whatsapp" in app_name:
+            try:
+                os.startfile("whatsapp://")
+                response["message"] = "Opening WhatsApp Desktop, sir."
+            except Exception:
+                webbrowser.open("https://web.whatsapp.com")
+                response["message"] = "Launching WhatsApp Web, sir."
+            response["action"] = "launch"
+            launched = True
+            
+        if not launched:
+            response["status"] = "error"
+            response["message"] = f"I couldn't find an application matching '{app_name}' on your system, sir. Try saying the full app name."
                     
     # 5. Web Searching
     elif "search google for" in cmd or "search for" in cmd or "google" in cmd:
@@ -950,9 +1124,14 @@ def parse_and_execute_command(command_text):
         response["action"] = "chat"
 
     else:
-        # General response helper
-        response["message"] = f"I've logged the command: '{command_text}'. Since my custom functions for this are still expanding, what specific laptop command should I execute next, sir?"
-        response["action"] = "chat"
+        # Try AI chatbot if Gemini API key is configured
+        ai_response = chat_with_gemini(command_text)
+        if ai_response:
+            response["message"] = ai_response
+            response["action"] = "chat"
+        else:
+            response["message"] = f"I've logged the command: '{command_text}'. My AI brain is not yet configured — add a 'gemini_api_key' to config.json to enable intelligent conversations, sir."
+            response["action"] = "chat"
         
     return response
 
@@ -1034,9 +1213,10 @@ def api_apps_launch():
     if not shortcut_path:
         return jsonify({"status": "error", "message": "Path is empty"}), 400
     # Security: Only allow launching .lnk shortcut files from Start Menu
-    if not shortcut_path.lower().endswith('.lnk'):
-        return jsonify({"status": "error", "message": "Security: Only Start Menu shortcuts (.lnk) can be launched, sir."}), 403
-    if not is_path_safe(shortcut_path):
+    is_uwp = shortcut_path.startswith("shell:AppsFolder")
+    if not is_uwp and not shortcut_path.lower().endswith('.lnk'):
+        return jsonify({"status": "error", "message": "Security: Only Start Menu shortcuts (.lnk) or Store apps can be launched, sir."}), 403
+    if not is_uwp and not is_path_safe(shortcut_path):
         return jsonify({"status": "error", "message": "Security: Path is outside allowed directories, sir."}), 403
     try:
         os.startfile(shortcut_path)
